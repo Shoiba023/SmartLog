@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Voice Logger</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; text-align: center; }
+    h1 { font-size: 24px; }
+    textarea { width: 90%; height: 100px; margin: 10px 0; font-size: 16px; }
+    button { font-size: 18px; padding: 10px 20px; margin: 10px; }
+  </style>
+</head>
+<body>
+  <h1>🎙 Smart Voice Logger</h1>
+
+  <button onclick="startDictation()">🎤 Start Voice</button>
+  <br/>
+  <textarea id="text" placeholder="Your spoken text will appear here..."></textarea>
+  <br/>
+  <button onclick="submitData()">📤 Submit to Sheet</button>
+
+  <p id="status"></p>
+
+  <script>
+    function startDictation() {
+      if ('webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onresult = function(event) {
+          document.getElementById('text').value = event.results[0][0].transcript;
+        };
+        recognition.onerror = function(event) {
+          alert('Error: ' + event.error);
+        };
+        recognition.start();
+      } else {
+        alert("Your browser doesn't support speech recognition.");
+      }
+    }
+
+    function submitData() {
+      const text = document.getElementById('text').value;
+      if (!text) {
+        alert("Please speak or enter something first.");
+        return;
+      }
+
+      fetch("https://script.google.com/macros/s/AKfycbzak-WUNhDP9JJasT_1Uwk_ax4zvlRFWGNKoZebegn1sL7yRB3TOibquP6OBPQyC1bgkA/exec", {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ entry: text })
+      });
+
+      document.getElementById('status').innerText = "✅ Submitted!";
+      document.getElementById('text').value = "";
+    }
+  </script>
+</body>
+</html>
